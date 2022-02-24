@@ -1,21 +1,20 @@
-package com.qike366.polaris.aop;
+package com.example.demo.aop;
 
 import com.alibaba.fastjson.JSONObject;
-import com.qike366.polaris.annotation.ParamsAnnotation;
-import com.qike366.polaris.enums.QuerySelectEnum;
-import com.qike366.polaris.enums.XaxisEnum;
-import com.qike366.polaris.pojo.bo.BaseCondition;
-import com.qike366.polaris.pojo.vo.BaseXaxisVo;
-import com.qike366.polaris.service.ConditionValidate;
-import com.qike366.polaris.service.XaxisCoverService;
-import com.xingheo.scrm.user.response.UserDto;
+import com.example.demo.aop.config.ParamsAnnotation;
+import com.example.demo.aop.pojo.BaseCondition;
+import com.example.demo.aop.pojo.UserDto;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,6 @@ import javax.servlet.http.HttpSession;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,14 +42,8 @@ public class ResultOperateAspect {
   /**
    * 定义切点 @Pointcut,在注解的位置切入代码
    */
-  @Pointcut(value = "@annotation(com.qike366.polaris.annotation.ParamsAnnotation) && args(user, condition)")
+  @Pointcut(value = "@annotation(com.example.demo.aop.config.ParamsAnnotation) && args(user, condition)")
   public void paramsAnnotation(UserDto user, BaseCondition condition) {}
-
-  /**
-   * 定义切点 @Pointcut,在注解的位置切入代码
-   */
-  @Pointcut(value = "@annotation(com.qike366.polaris.config.ResultAnnotation)")
-  public void resultAnnotation() {}
 
 //  @Pointcut(value = "execution(* com.qike366.polaris..*.*(..)) && args(user, condition)")
 //  public void paramsAnnotation(UserDto user, BaseCondition condition) {}
@@ -63,49 +55,45 @@ public class ResultOperateAspect {
 
   @Before(value = "paramsAnnotation(user, condition)", argNames = "user, condition")
   public void beforeMethod(UserDto user, BaseCondition condition) {
-    // 条件转换
-    ConditionValidate.initCondition(user, condition);
-    QuerySelectEnum querySelectEnum = condition.getQuerySelectEnum();
-    XaxisEnum xaxisEnum = XaxisCoverService.getXaxisEnum(querySelectEnum, condition.getTimeSelectEnum());
-    condition.setAxis(xaxisEnum.getCode());
+    System.out.println("按业务需要处理");
   }
-//  @After(value = "paramsAnnotation(user, condition)", argNames = "user, condition")
-//  public void afterMethod(UserDto user, BaseCondition condition) {
-//    System.out.println("8888888");
-//  }
 
-  @AfterReturning(pointcut = "@annotation(com.qike366.polaris.annotation.ParamsAnnotation) && args(user, condition)",returning="result")
+  @After(value = "paramsAnnotation(user, condition)", argNames = "user, condition")
+  public void afterMethod(UserDto user, BaseCondition condition) {
+    System.out.println("8888888");
+  }
+
+  @AfterReturning(pointcut = "@annotation(com.example.demo.aop.config.ParamsAnnotation) && args(user, condition)",returning="result")
   public void afterResultMethod(UserDto user, BaseCondition condition, Object result) {
     System.out.println("8888888");
     if (null == result) {
       return;
     }
-    List<BaseXaxisVo> resultList = (List<BaseXaxisVo>)result;
-    QuerySelectEnum querySelectEnum = condition.getQuerySelectEnum();
-    XaxisEnum xaxisEnum = XaxisCoverService.getXaxisEnum(querySelectEnum, condition.getTimeSelectEnum());
-    // list排序
-    if (!XaxisEnum.FOLLOW.name().equals(xaxisEnum.getCode())) {
-      Collections.sort(resultList, XaxisCoverService.comparator);
-    }
-    // Key横轴名转换
-    resultList.stream().forEach(vo -> vo.setKey(XaxisCoverService.coverColumnKey(vo.getKey(), xaxisEnum)));
+    System.out.println("结果处理:" + result);
   }
 
-  //环绕通知。注意要有ProceedingJoinPoint参数传入。
-//  @Around(value = "paramsAnnotation(user, condition)")
-//  public List<BaseXaxisVo> sayAround(ProceedingJoinPoint pjp, UserDto user, BaseCondition condition) throws Throwable {
-//    System.out.println("注解类型环绕通知..环绕前");
-//    // 获取参数
-//    Object[] args = pjp.getArgs();
-//    // 获取参数签名
-//    MethodSignature signature = (MethodSignature)pjp.getSignature();
-//    // 获取方法参数类型组
-//    Class[] parameterTypes = signature.getParameterTypes();
-//    //执行方法
-//    Object proceed = pjp.proceed(args);
-//    System.out.println("注解类型环绕通知..环绕后");
-//    return (List<BaseXaxisVo>)proceed;
-//  }
+  /**
+   * 环绕通知。注意要有ProceedingJoinPoint参数传入。
+   * @param pjp
+   * @param user
+   * @param condition
+   * @return
+   * @throws Throwable
+   */
+  @Around(value = "paramsAnnotation(user, condition)")
+  public List<UserDto> sayAround(ProceedingJoinPoint pjp, UserDto user, BaseCondition condition) throws Throwable {
+    System.out.println("注解类型环绕通知..环绕前");
+    // 获取参数
+    Object[] args = pjp.getArgs();
+    // 获取参数签名
+    MethodSignature signature = (MethodSignature)pjp.getSignature();
+    // 获取方法参数类型组
+    Class[] parameterTypes = signature.getParameterTypes();
+    //执行方法
+    Object proceed = pjp.proceed(args);
+    System.out.println("注解类型环绕通知..环绕后");
+    return (List<UserDto>)proceed;
+  }
 
   //函数抛出异常后调用，参数e获取抛出的异常
   @AfterThrowing(pointcut = "paramsAnnotation(user, condition)", throwing = "e")

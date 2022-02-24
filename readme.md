@@ -4,11 +4,16 @@
         1. 添加@Aspect注解和@Component注解
         2. OperationLogAspect
     3. 定义切点:
-        1. 注解方式:
-        OperationLogAspect.errorAspect         @Pointcut("@annotation(com.example.demo.aop.config.ErrorAnnotation)")
-        OperationLogAspect.loginfoAspec        @Pointcut("@annotation(com.example.demo.aop.config.LoginfoAnnotation)"
-        2. 表达式方式:
-        OperationLogAspect.point    @Pointcut(value = "execution(* com.example.demo..*.*(..))")
+        1. 无参注解方式:
+            OperationLogAspect.errorAspect     @Pointcut("@annotation(com.example.demo.aop.config.ErrorAnnotation)")
+            OperationLogAspect.loginfoAspec    @Pointcut("@annotation(com.example.demo.aop.config.LoginfoAnnotation)"
+        2. 带参注解方式:
+            ResultOperateAspect.paramsAnnotation   @Pointcut(value = "@annotation(com.example.demo.aop.config.ParamsAnnotation) && args(user, condition)")
+            ResultOperateAspect.beforeMethod   @Before(value = "paramsAnnotation(user, condition)", argNames = "user, condition")
+        3. 返回结果:
+            ResultOperateAspect.afterResultMethod   @AfterReturning(pointcut = "@annotation(com.example.demo.aop.config.ParamsAnnotation) && args(user, condition)",returning="result")
+        3. 表达式方式:
+            OperationLogAspect.point    @Pointcut(value = "execution(* com.example.demo..*.*(..))")
     4. 定义切点触发业务逻辑:
         OperationLogAspect.afterThrowing(@AfterThrowing:发生异常时业务处理)
         1. @After:后置切入

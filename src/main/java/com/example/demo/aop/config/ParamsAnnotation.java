@@ -1,10 +1,8 @@
-package com.qike366.polaris.annotation;
+package com.example.demo.aop.config;
 
-import com.qike366.polaris.pojo.bo.BaseCondition;
-import com.xingheo.scrm.user.response.UserDto;
-import feign.Param;
+import com.example.demo.aop.pojo.BaseCondition;
+import com.example.demo.aop.pojo.UserDto;
 
-import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
