@@ -41,17 +41,18 @@ public class ResultOperateAspect {
 
   /**
    * 定义切点 @Pointcut,在注解的位置切入代码
+   * 切面的方法入参必须遵守user, condition
    */
   @Pointcut(value = "@annotation(com.example.demo.aop.config.ParamsAnnotation) && args(user, condition)")
   public void paramsAnnotation(UserDto user, BaseCondition condition) {}
 
-//  @Pointcut(value = "execution(* com.qike366.polaris..*.*(..)) && args(user, condition)")
-//  public void paramsAnnotation(UserDto user, BaseCondition condition) {}
+  @Pointcut(value = "execution(* com.example.demo..*.*(..)) && args(user, condition)")
+  public void paramsAnnotation2(UserDto user, BaseCondition condition) {}
 
   //定义切点函数,execution也支持模糊匹配 如:execution(* com.example.demo.aop.ErrorServiceImpl.*(**))  && args(参数1.参数2)
   //切点函数参数列表类型与代理对象函数参数列表相同，这是为了方便使用参数
-  //@Pointcut(value = "execution(* com.qike366.polaris..*.*(..))")
-  //public void point() {}
+  @Pointcut(value = "execution(* com.example.demo..*.*(..)) || execution(* com.example.demo.aop.controller.*.*(..))")
+  public void point() {}
 
   @Before(value = "paramsAnnotation(user, condition)", argNames = "user, condition")
   public void beforeMethod(UserDto user, BaseCondition condition) {
@@ -81,17 +82,18 @@ public class ResultOperateAspect {
    * @throws Throwable
    */
   @Around(value = "paramsAnnotation(user, condition)")
-  public List<UserDto> sayAround(ProceedingJoinPoint pjp, UserDto user, BaseCondition condition) throws Throwable {
-    System.out.println("注解类型环绕通知..环绕前");
-    // 获取参数
-    Object[] args = pjp.getArgs();
+  public List<UserDto> aroundMethod(ProceedingJoinPoint pjp, UserDto user, BaseCondition condition) throws Throwable {
     // 获取参数签名
     MethodSignature signature = (MethodSignature)pjp.getSignature();
     // 获取方法参数类型组
     Class[] parameterTypes = signature.getParameterTypes();
+    Method method = signature.getMethod();
+    System.out.println("注解类型环绕通知..环绕前,"+method);
+    // 获取参数
+    Object[] args = pjp.getArgs();
     //执行方法
     Object proceed = pjp.proceed(args);
-    System.out.println("注解类型环绕通知..环绕后");
+    System.out.println("注解类型环绕通知..环绕后,"+method);
     return (List<UserDto>)proceed;
   }
 
